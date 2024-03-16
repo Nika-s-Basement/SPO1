@@ -2,20 +2,26 @@
   <div id="sidebar" :class="{ 'loaded': isLoaded, 'expanded': isExpanded }">
     <button @click="toggleSidebar" :class="{'playCrossBtn': true, 'active': isExpanded}"></button>
     <div class="menu-icons">
-      <div class="menu-icon" v-for="(icon, index) in icons" :key="index">
-        <router-link :to="icon.path">
+      <div v-for="(icon, index) in icons" :key="index">
+        <router-link v-if="!roomCreated || icon.label !== 'Создать комнату'" :to="icon.path" @click.native="icon.click ? icon.click() : null">
           <div class="menu-icon-label">{{ icon.label }}</div>
           <i :class="icon.class"></i>
         </router-link>
+        <div v-show="roomCreated && icon.label === 'Создать комнату'" class="room-info">
+          <div>{{ creatorName }}</div>
+          <div>Ожидание игрока...</div>
+          <div>Ожидание игрока...</div>
+          <div>Ожидание игрока...</div>
+        </div>
       </div>
     </div>
-<!--    <div class="user">-->
-<!--      <i class="fi fi-sr-user-injured"></i>-->
-<!--    </div>-->
   </div>
 </template>
 
+
+
 <script>
+import axios from 'axios'; // Убедитесь, что axios установлен
 
 export default {
   data() {
@@ -24,9 +30,11 @@ export default {
       isAuthenticated: false,
       isExpanded: false,
       isLoaded: false,
+      roomCreated: false,
+      creatorName: '',
       icons: [
         {class: 'fi fi-sr-play', label: 'Запустить игру', path: '/Game'},
-        {class: 'fi fi-sr-globe', label: 'Создать комнату', path: ''},
+        {class: 'fi fi-sr-globe', label: 'Создать комнату', path: '', click: this.createRoom},
         {class: 'fi fi-sr-user-injured', label: this.whoAmI(), path: '/registration'},
         {class: 'fi fi-sr-settings', label: 'Настройки', path: ''},
       ],
@@ -40,35 +48,49 @@ export default {
     toggleSidebar() {
       this.isExpanded = !this.isExpanded;
     },
-    // async loadData() {
-    //   try {
-    //     // Загрузка данных
-    //     // Предположим, это асинхронный вызов
-    //     await fetchData();
-    //     this.isLoaded = true;
-    //   } catch (error) {
-    //     console.error("Ошибка загрузки данных", error);
-    //   }
-    // },
     loadData() {
       this.isLoaded = true;
     },
     whoAmI() {
-      this.checkAuth()
-      return this.user
+      this.checkAuth();
+      return this.user;
     },
     checkAuth() {
-      // Проверяем наличие токена в localStorage
       const token = localStorage.getItem('user-token');
-      !!token ? this.user = localStorage.getItem('user-name') : 'Авторизация';
+      if (token) {
+        this.user = localStorage.getItem('user-name') || 'Авторизация';
+        this.isAuthenticated = true;
+      } else {
+        this.user = 'Авторизация';
+        this.isAuthenticated = false;
+      }
+    },
+    createRoom() {
+      axios.post('http://192.168.1.70:3000/create_room', {/* данные, если нужны */})
+          .then(response => {
+            this.roomCreated = true;
+            this.creatorName = localStorage.getItem('user-name');
+          })
+          .catch(error => {
+            console.error("Ошибка при создании комнаты", error);
+          });
     },
   },
 };
 </script>
 
+
+
 <style scoped>
 .user {
   position: relative;
+}
+
+.room-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
 }
 
 .playCrossBtn {

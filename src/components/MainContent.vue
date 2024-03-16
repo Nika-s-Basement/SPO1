@@ -10,7 +10,7 @@
       </div>
       <h2>Starting new game</h2>
       <p>Carcsssone season rang match is basically three month a periond of simple text for showing maket</p>
-      <button class="greenButton">PLAY</button>
+      <router-link class="greenButton" ref="/rooms" @click.native="`/rooms`" to="/rooms">PLAY</router-link>
     </div>
     <div :class="{ 'verticalLine': true, 'loaded': isLoaded}"></div>
     <div class="text">
