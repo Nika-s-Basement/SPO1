@@ -58,15 +58,13 @@ function authenticateToken(req, res, next) {
     });
 }
 
-// Запрос для получения данных о пользователе по ID
-app.get('/players/:id', (req, res) => {
-    const playerId = req.params.id;
-    db.get('SELECT * FROM Players WHERE PlayerID = ?', [playerId], (err, row) => {
+// Запрос для получения списка пользователей из БД
+app.get('/get_users', (req, res) => {
+    db.all("SELECT Username FROM Players", (err, rows) => {
         if (err) {
-            res.status(500).json({error: err.message});
-            return;
+            return res.status(500).json({error: err.message});
         }
-        res.json(row);
+        res.json({logins: rows});
     });
 });
 
